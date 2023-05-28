@@ -11,6 +11,16 @@
 
 using namespace std;
 
+__device__ unsigned int hashFunction(int key, int tableSize) {
+    unsigned int hash = static_cast<unsigned int>(key);
+
+    hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
+    hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
+    hash = (hash >> 16) ^ hash;
+
+    return hash % tableSize;
+}
+
 /*
 Allocate CUDA memory only through glbGpuAllocator
 cudaMalloc -> glbGpuAllocator->_cudaMalloc
