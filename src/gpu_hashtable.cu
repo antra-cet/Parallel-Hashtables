@@ -148,7 +148,7 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     glbGpuAllocator->_cudaMalloc((void**)&newValues, numBucketsReshape * sizeof(int));
 
     // Initialize the hashtable with -1
-    cudaMemeset(newKeys, -1, numBucketsReshape * sizeof(int));
+    cudaMemset(newKeys, -1, numBucketsReshape * sizeof(int));
     cudaMemset(newValues, -1, numBucketsReshape * sizeof(int));
 
     // Calculate the number of blocks and threads
