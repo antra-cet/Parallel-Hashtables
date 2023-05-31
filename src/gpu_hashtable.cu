@@ -82,8 +82,9 @@ GpuHashTable::GpuHashTable(int size) {
     this->capacity = size;
 
     // Initialize the hashtable with -1
-    cudaMemcpy(this->keys, &(-1), size * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(this->values, &(-1), size * sizeof(int), cudaMemcpyHostToDevice);
+    int initialValue = -1;
+    cudaMemcpy(this->keys, &initialValue, size * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(this->values, &initialValue, size * sizeof(int), cudaMemcpyHostToDevice);
 }
 
 GpuHashTable::~GpuHashTable() {
@@ -104,20 +105,20 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     glbGpuAllocator->_cudaMalloc((void**)&newValues, numBucketsReshape * sizeof(int));
 
     // Initialize the hashtable with -1
-    cudaMemcpy(newKeys, &(-1), numBucketsReshape * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(newValues, &(-1), numBucketsReshape * sizeof(int), cudaMemcpyHostToDevice);
+    int initialValue = -1;
+    cudaMemcpy(newKeys, &initialValue, numBucketsReshape * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(newValues, &initialValue, numBucketsReshape * sizeof(int), cudaMemcpyHostToDevice);
 
     // Calculate the number of blocks and threads
     const size_t block_size = 256;
-  	size_t blocks_no = num_elements / block_size;
+  	size_t blocks_no = numKeys / block_size;
 
-    if (num_elements % block_size) {
+    if (numKeys % block_size) {
         ++blocks_no;
     }
 
     // Call the kernel
-    reshapeKernel<<<blocks_no, block_size>>>(this->keys, this->values, this->numItems, this->capacity,
-                                             newKeys, newValues, numBucketsReshape);
+    reshapeKernel<<<blocks_no, block_size>>>();
 
     // Synchronize the threads
     cudaDeviceSynchronize();
@@ -191,15 +192,14 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
 
     // Calculate the number of blocks and threads
     const size_t block_size = 256;
-  	size_t blocks_no = num_elements / block_size;
+  	size_t blocks_no = numKeys / block_size;
 
-    if (num_elements % block_size) {
+    if (numKeys % block_size) {
         ++blocks_no;
     }
 
     // Call the kernel
-    getKernel<<<blocks_no, block_size>>>(this->keys, this->values, this->numItems, this->capacity,
-                                         d_keys, values, numKeys);
+    getKernel<<<blocks_no, block_size>>>();
 
     // Synchronize the threads
     cudaDeviceSynchronize();
