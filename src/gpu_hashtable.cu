@@ -126,9 +126,8 @@ GpuHashTable::GpuHashTable(int size) {
     this->capacity = size;
 
     // Initialize the hashtable with -1
-    int initialValue = -1;
-    cudaMemcpy(this->keys, &initialValue, size * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(this->values, &initialValue, size * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemset(this->keys, -1, size * sizeof(int));
+    cudaMemset(this->values, -1, size * sizeof(int));
 }
 
 GpuHashTable::~GpuHashTable() {
@@ -149,9 +148,8 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     glbGpuAllocator->_cudaMalloc((void**)&newValues, numBucketsReshape * sizeof(int));
 
     // Initialize the hashtable with -1
-    int initialValue = -1;
-    cudaMemcpy(newKeys, &initialValue, numBucketsReshape * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(newValues, &initialValue, numBucketsReshape * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemeset(newKeys, -1, numBucketsReshape * sizeof(int));
+    cudaMemset(newValues, -1, numBucketsReshape * sizeof(int));
 
     // Calculate the number of blocks and threads
     const size_t block_size = 256;
