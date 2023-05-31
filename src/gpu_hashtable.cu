@@ -116,21 +116,27 @@ __global__ void getKernel(int *keys, int *values, int *numItems, int capacity,
 }
 
 GpuHashTable::GpuHashTable(int size) {
+    printf("GpuHashTable::GpuHashTable\n");
+
     // Allocate memory for the hashtable
     glbGpuAllocator->_cudaMalloc((void**)&this->keys, size * sizeof(int));
     glbGpuAllocator->_cudaMalloc((void**)&this->values, size * sizeof(int));
     glbGpuAllocator->_cudaMallocManaged((void**)&this->numItems, sizeof(int));
 
     // Set numItems and capacity
-    *this->numItems = 0;
+    *numItems = 0;
     this->capacity = size;
 
     // Initialize the hashtable with -1
     cudaMemset(this->keys, -1, size * sizeof(int));
     cudaMemset(this->values, -1, size * sizeof(int));
+
+    printf("Finished GpuHashTable::GpuHashTable\n")
 }
 
 GpuHashTable::~GpuHashTable() {
+    printf("GpuHashTable::~GpuHashTable\n");
+
     // Free the memory allocated for the hashtable
     glbGpuAllocator->_cudaFree(this->keys);
     glbGpuAllocator->_cudaFree(this->values);
@@ -139,9 +145,13 @@ GpuHashTable::~GpuHashTable() {
     // Set numItems and capacity to 0
     *this->numItems = 0;
     this->capacity = 0;
+
+    printf("Finished GpuHashTable::~GpuHashTable\n");
 }
 
 void GpuHashTable::reshape(int numBucketsReshape) {
+    printf("GpuHashTable::reshape\n");
+
     // Allocate memory for the new hashtable
     int *newKeys, *newValues;
     glbGpuAllocator->_cudaMalloc((void**)&newKeys, numBucketsReshape * sizeof(int));
@@ -174,9 +184,13 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     this->keys = newKeys;
     this->values = newValues;
     this->capacity = numBucketsReshape;
+
+    printf("Finished GpuHashTable::reshape\n");
 }
 
 bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
+    printf("GpuHashTable::insertBatch\n");
+
     // Other checks
     if (numKeys <= 0) {
         return false;
@@ -220,10 +234,14 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     glbGpuAllocator->_cudaFree(d_keys);
     glbGpuAllocator->_cudaFree(d_values);
 
+    printf("Finished GpuHashTable::insertBatch\n");
+
     return true;
 }
 
 int* GpuHashTable::getBatch(int* keys, int numKeys) {
+    printf("GpuHashTable::getBatch\n");
+
     // Allocate memory for the values
     int *values;
     glbGpuAllocator->_cudaMallocManaged((void**)&values, numKeys * sizeof(int));
@@ -250,6 +268,8 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
 
     // Free the memory allocated for the keys
     glbGpuAllocator->_cudaFree(d_keys);
+
+    printf("Finished GpuHashTable::getBatch\n");
 
     return values;
 }
