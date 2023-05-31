@@ -24,7 +24,7 @@ __device__ unsigned int hashFunction(int key, int tableSize) {
     return hash % tableSize;
 }
 
-__global__ void reshapeKernel(int *keys, int *values, int *numItems, int capacity,
+__global__ void reshapeKernel(int *keys, int *values, int numItems, int capacity,
                               int *newKeys, int *newValues, int newCapacity) {
     // Calculate global index
     unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
@@ -89,7 +89,7 @@ __global__ void insertKernel(int *keys, int *values, int *numItems, int capacity
     }
 }
 
-__global__ void getKernel(int *keys, int *values, int *numItems, int capacity,
+__global__ void getKernel(int *keys, int *values, int numItems, int capacity,
                           int *getKeys, int *getValues, int numGetItems) {
     // Calculate global index
     unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
