@@ -121,13 +121,9 @@ GpuHashTable::GpuHashTable(int size) {
     // Allocate memory for the hashtable
     glbGpuAllocator->_cudaMalloc((void**)&this->keys, size * sizeof(int));
     glbGpuAllocator->_cudaMalloc((void**)&this->values, size * sizeof(int));
-    glbGpuAllocator->_cudaMallocManaged((void**)&this->numItems, sizeof(int));
 
     // Set numItems and capacity
-    printf("Setting numItems and capacity\n");
-    *numItems = 0;
-
-    printf("Setting capacity\n");
+    this->numItems = 0;
     this->capacity = size;
 
     // Initialize the hashtable with -1
@@ -143,10 +139,9 @@ GpuHashTable::~GpuHashTable() {
     // Free the memory allocated for the hashtable
     glbGpuAllocator->_cudaFree(this->keys);
     glbGpuAllocator->_cudaFree(this->values);
-    glbGpuAllocator->_cudaFree(this->numItems);
 
     // Set numItems and capacity to 0
-    *this->numItems = 0;
+    this->numItems = 0;
     this->capacity = 0;
 
     printf("Finished GpuHashTable::~GpuHashTable\n");
@@ -200,10 +195,10 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     }
 
     // Verify if the hashtable needs to be resized
-    float loadFactor = (*numItems + numKeys) / (float) this->capacity;
+    float loadFactor = (this->numItems + numKeys) / (float) this->capacity;
     if (loadFactor > LOADFACTOR) {
         // Calculate the resize capacity
-        int resizeCapacity = (*numItems + numKeys) / DESIRED_LOADFACTOR;
+        int resizeCapacity = (this->numItems + numKeys) / DESIRED_LOADFACTOR;
 
         // Reshape the hashtable
         this->reshape(resizeCapacity);
@@ -226,9 +221,16 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 		++blocks_no;
     }
 
+    int *numAddedItems;
+    glbGpuAllocator->_cudaMallocManaged((void**)&numAddedItems, sizeof(int));
+    *numAddedItems = 0;
+
     // Call the kernel
-    insertKernel<<<blocks_no, block_size>>>(this->keys, this->values, this->numItems, this->capacity,
+    insertKernel<<<blocks_no, block_size>>>(this->keys, this->values, numAddedItems, this->capacity,
                                             d_keys, d_values, numKeys);
+
+    // Add the keys - numAddedItems to the numItems
+    this->numItems += *numAddedItems;
 
     // Synchronize the threads
     cudaDeviceSynchronize();

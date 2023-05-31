@@ -15,7 +15,7 @@ class GpuHashTable
 
 		~GpuHashTable();
 		int *keys, *values;
-		int capacity, *numItems;
+		int capacity, numItems;
 };
 
 #endif
