@@ -111,9 +111,9 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 
     // Calculate the number of blocks and threads
     const size_t block_size = 256;
-  	size_t blocks_no = numKeys / block_size;
+  	size_t blocks_no = numBucketsReshape / block_size;
 
-    if (numKeys % block_size) {
+    if (numBucketsReshape % block_size) {
         ++blocks_no;
     }
 
@@ -162,7 +162,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     const size_t block_size = 256;
   	size_t blocks_no = numKeys / block_size;
 
-	if (num_elements % block_size) {
+	if (numKeys % block_size) {
 		++blocks_no;
     }
 
