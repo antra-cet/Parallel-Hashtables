@@ -24,6 +24,32 @@ __device__ unsigned int hashFunction(int key, int tableSize) {
     return hash % tableSize;
 }
 
+__global__ void reshapeKernel(int *keys, int *values, int *numItems, int capacity,
+                              int *newKeys, int *newValues, int newCapacity) {
+    // Calculate global index
+    unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
+
+    if (i < capacity) {
+        // Calculate the hash
+        unsigned int newHash = hashFunction(newKeys[i], newCapacity);
+
+        // Try and insert the key
+        while(true) {
+            // If the key is -1, insert it
+            if (atomicCAS(&newkeys[newHash], -1, keys[i]) == -1) {
+                // Insert the value
+                atomicCAS(&newValues[newHash], -1, values[i]);
+
+                // Break the loop
+                break;
+            } else {
+                // If the key is not -1, try and insert it in the next position
+                newHash = (newHash + 1) % newCapacity;
+            }
+        }
+    }
+}
+
 __global__ void insertKernel(int *keys, int *values, int *numItems, int capacity,
                              int *insertKeys, int *insertValues, int numInsertItems) {
     // Calculate global index
@@ -63,12 +89,30 @@ __global__ void insertKernel(int *keys, int *values, int *numItems, int capacity
     }
 }
 
-__global__ void reshapeKernel() {
-    // TODO : Implement the reshape kernel
-}
+__global__ void getKernel(int *keys, int *values, int *numItems, int capacity,
+                          int *getKeys, int *getValues, int numGetItems) {
+    // Calculate global index
+    unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
 
-__global__ void getKernel() {
-    // TODO : Implement the reshape kernel
+    if (i < numGetItems) {
+        // Calculate the hash
+        unsigned int getHash = hashFunction(getKeys[i], capacity);
+
+        // Try and get the key
+        while(true) {
+            // If the key is the same, get the value
+            if (keys[getHash] == getKeys[i]) {
+                // Get the value
+                getValues[i] = values[getHash];
+
+                // Break the loop
+                break;
+            } else {
+                // If the key is not -1, try and get it from the next position
+                getHash = (getHash + 1) % capacity;
+            }
+        }
+    }                                   
 }
 
 GpuHashTable::GpuHashTable(int size) {
@@ -118,7 +162,8 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     }
 
     // Call the kernel
-    reshapeKernel<<<blocks_no, block_size>>>();
+    reshapeKernel<<<blocks_no, block_size>>>(this->keys, this->values, this->numItems, this->capacity,
+                                             newKeys, newValues, numBucketsReshape);
 
     // Synchronize the threads
     cudaDeviceSynchronize();
@@ -140,10 +185,10 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     }
 
     // Verify if the hashtable needs to be resized
-    int loadFactor = (*this->numItems + numKeys) / this->capacity;
+    float loadFactor = (*numItems + numKeys) / (float) this->capacity;
     if (loadFactor > LOADFACTOR) {
         // Calculate the resize capacity
-        int resizeCapacity = loadFactor / DESIRED_LOADFACTOR;
+        int resizeCapacity = (*numItems + numKeys) / DESIRED_LOADFACTOR;
 
         // Reshape the hashtable
         this->reshape(resizeCapacity);
@@ -199,7 +244,8 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
     }
 
     // Call the kernel
-    getKernel<<<blocks_no, block_size>>>();
+    getKernel<<<blocks_no, block_size>>>(this->keys, this->values, this->numItems, this->capacity,
+                                         d_keys, values, numKeys);
 
     // Synchronize the threads
     cudaDeviceSynchronize();
