@@ -124,7 +124,10 @@ GpuHashTable::GpuHashTable(int size) {
     glbGpuAllocator->_cudaMallocManaged((void**)&this->numItems, sizeof(int));
 
     // Set numItems and capacity
+    printf("Setting numItems and capacity\n");
     *numItems = 0;
+
+    printf("Setting capacity\n");
     this->capacity = size;
 
     // Initialize the hashtable with -1
