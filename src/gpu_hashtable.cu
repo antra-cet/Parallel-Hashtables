@@ -194,6 +194,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
         return false;
     }
 
+    printf("Insert befor reshape\n");
     // Verify if the hashtable needs to be resized
     float loadFactor = (this->numItems + numKeys) / (float) this->capacity;
     if (loadFactor > LOADFACTOR) {
@@ -204,14 +205,20 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
         this->reshape(resizeCapacity);
     }
 
+    printf("Insert after reshape\n");
+
     // Allocate memory for the keys and values
     int *d_keys, *d_values;
     glbGpuAllocator->_cudaMalloc((void**)&d_keys, numKeys * sizeof(int));
     glbGpuAllocator->_cudaMalloc((void**)&d_values, numKeys * sizeof(int));
 
+    printf("Allocated memory\n");
+
     // Copy the keys and values to the device
     cudaMemcpy(d_keys, keys, numKeys * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_values, values, numKeys * sizeof(int), cudaMemcpyHostToDevice);
+
+    printf("Copied memory\n");
 
     // Calculate the number of blocks and threads
     const size_t block_size = 256;
