@@ -67,6 +67,10 @@ __global__ void reshapeKernel() {
     // TODO : Implement the reshape kernel
 }
 
+__global__ void getKernel() {
+    // TODO : Implement the reshape kernel
+}
+
 GpuHashTable::GpuHashTable(int size) {
     // Allocate memory for the hashtable
     glbGpuAllocator->_cudaMalloc((void**)&this->keys, size * sizeof(int));
@@ -78,8 +82,8 @@ GpuHashTable::GpuHashTable(int size) {
     this->capacity = size;
 
     // Initialize the hashtable with -1
-    cudaMemcpy(this->keys, -1, size * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(this->values, -1, size * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(this->keys, &(-1), size * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(this->values, &(-1), size * sizeof(int), cudaMemcpyHostToDevice);
 }
 
 GpuHashTable::~GpuHashTable() {
@@ -100,8 +104,8 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     glbGpuAllocator->_cudaMalloc((void**)&newValues, numBucketsReshape * sizeof(int));
 
     // Initialize the hashtable with -1
-    cudaMemcpy(newKeys, -1, numBucketsReshape * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(newValues, -1, numBucketsReshape * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(newKeys, &(-1), numBucketsReshape * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(newValues, &(-1), numBucketsReshape * sizeof(int), cudaMemcpyHostToDevice);
 
     // Calculate the number of blocks and threads
     const size_t block_size = 256;
@@ -155,7 +159,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 
     // Calculate the number of blocks and threads
     const size_t block_size = 256;
-  	size_t blocks_no = num_elements / block_size;
+  	size_t blocks_no = numKeys / block_size;
 
 	if (num_elements % block_size) {
 		++blocks_no;
