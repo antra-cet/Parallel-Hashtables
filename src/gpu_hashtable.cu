@@ -131,7 +131,7 @@ GpuHashTable::GpuHashTable(int size) {
     cudaMemset(this->keys, -1, size * sizeof(int));
     cudaMemset(this->values, -1, size * sizeof(int));
 
-    printf("Finished GpuHashTable::GpuHashTable\n")
+    printf("Finished GpuHashTable::GpuHashTable\n");
 }
 
 GpuHashTable::~GpuHashTable() {
