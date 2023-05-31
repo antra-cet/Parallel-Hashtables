@@ -14,6 +14,8 @@ class GpuHashTable
 		int* getBatch(int* key, int numItems);
 
 		~GpuHashTable();
+		int *key, *value;
+		int capacity, *numItems;
 };
 
 #endif
