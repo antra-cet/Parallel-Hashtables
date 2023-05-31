@@ -36,7 +36,7 @@ __global__ void reshapeKernel(int *keys, int *values, int *numItems, int capacit
         // Try and insert the key
         while(true) {
             // If the key is -1, insert it
-            if (atomicCAS(&newkeys[newHash], -1, keys[i]) == -1) {
+            if (atomicCAS(&newKeys[newHash], -1, keys[i]) == -1) {
                 // Insert the value
                 atomicCAS(&newValues[newHash], -1, values[i]);
 
