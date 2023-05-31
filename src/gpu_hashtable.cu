@@ -229,8 +229,10 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     insertKernel<<<blocks_no, block_size>>>(this->keys, this->values, numAddedItems, this->capacity,
                                             d_keys, d_values, numKeys);
 
+    printf("numAddedItems: %d\n", *numAddedItems);
     // Add the keys - numAddedItems to the numItems
     this->numItems += *numAddedItems;
+    printf("finished adding\n");
 
     // Synchronize the threads
     cudaDeviceSynchronize();
@@ -238,6 +240,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     // Free the memory allocated for the keys and values
     glbGpuAllocator->_cudaFree(d_keys);
     glbGpuAllocator->_cudaFree(d_values);
+    glbGpuAllocator->_cudaFree(numAddedItems);
 
     printf("Finished GpuHashTable::insertBatch\n");
 
