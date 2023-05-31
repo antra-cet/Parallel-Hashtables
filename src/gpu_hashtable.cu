@@ -12,6 +12,7 @@
 using namespace std;
 
 #define LOADFACTOR 0.8
+#define DESIRED_LOADFACTOR 0.6
 
 __device__ unsigned int hashFunction(int key, int tableSize) {
     unsigned int hash = static_cast<unsigned int>(key);
@@ -55,7 +56,7 @@ __global__ void insertKernel(int *keys, int *values, int *numItems, int capacity
                     break;
                 } else {
                     // If the key is not -1, try and insert it in the next position
-                    hash = (hash + 1) % capacity;
+                    insertHash = (insertHash + 1) % capacity;
                 }
             }
         }
@@ -137,7 +138,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     int loadFactor = (*this->numItems + numKeys) / this->capacity;
     if (loadFactor > LOADFACTOR) {
         // Calculate the resize capacity
-        int resizeCapacity = this->capacity * 2;
+        int resizeCapacity = loadFactor / DESIRED_LOADFACTOR;
 
         // Reshape the hashtable
         this->reshape(resizeCapacity);
