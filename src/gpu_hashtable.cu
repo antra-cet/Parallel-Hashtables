@@ -12,7 +12,7 @@
 using namespace std;
 
 #define LOADFACTOR 0.75
-#define DESIRED_LOADFACTOR 0.6
+#define DESIRED_LOADFACTOR 0.55
 
 __device__ unsigned int hashFunction(int key, int tableSize) {
     unsigned int hash = static_cast<unsigned int>(key);
@@ -266,7 +266,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     cout<<"Load factor: " << loadFactor <<endl;
     if (loadFactor >= LOADFACTOR) {
         // Calculate the resize capacity
-        int resizeCapacity = (this->numItems + numKeys) / LOADFACTOR;
+        int resizeCapacity = (this->numItems + numKeys) / DESIRED_LOADFACTOR;
 
         // Reshape the hashtable
         this->reshape(resizeCapacity);
