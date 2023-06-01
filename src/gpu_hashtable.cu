@@ -327,6 +327,8 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
         exit(1);
     }
 
+    printf("Finished Synchronizing\n");
+
     // Free the memory allocated for the keys and values
     ret = glbGpuAllocator->_cudaFree(d_keys);
     if (ret != cudaSuccess) {
