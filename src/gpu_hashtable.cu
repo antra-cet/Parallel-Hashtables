@@ -221,10 +221,8 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 		++blocks_no;
     }
 
-    printf("Trying to allocate memory for numAddedItems\n");
     int *numAddedItems;
     glbGpuAllocator->_cudaMallocManaged((void**)&numAddedItems, sizeof(int));
-    printf("Allocated memory for numAddedItems\n");
 
     // Call the kernel
     insertKernel<<<blocks_no, block_size>>>(this->keys, this->values, numAddedItems, this->capacity,
