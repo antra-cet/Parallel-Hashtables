@@ -321,6 +321,8 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     this->numItems += *numAddedItems;
 
     // Synchronize the threads
+    printf("Started Synchronizing\n");
+
     ret = cudaDeviceSynchronize();
     if (ret != cudaSuccess) {
         printf("Error synchronizing threads: %s\n", cudaGetErrorString(ret));
