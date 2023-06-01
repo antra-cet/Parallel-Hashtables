@@ -222,10 +222,13 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     }
 
     int *numAddedItems;
-    glbGpuAllocator->_cudaMallocManaged((void**)&numAddedItems, sizeof(int));
-    printf("Inainte\n");
+    cudaError_t err = glbGpuAllocator->_cudaMallocManaged((void**)&numAddedItems, sizeof(int));
+    if (err != cudaSuccess) {
+        printf("Error allocating memory for numAddedItems, error: %s\n", cudaGetErrorString(err));
+        return false;
+    }
+
     *numAddedItems = 0;
-    printf("Dupa\n");
 
     printf("numAddedItems: %d\n", *numAddedItems);
 
