@@ -181,6 +181,9 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     cudaError_t ret;
     printf("GpuHashTable::reshape\n");
 
+    float loadFactor = 1.0 * (this->numItems) / this->capacity;
+    printf("Load factor: %f\n", loadFactor);
+
     // Allocate memory for the new hashtable
     int *newKeys, *newValues;
     ret = glbGpuAllocator->_cudaMalloc((void**)&newKeys, numBucketsReshape * sizeof(int));
