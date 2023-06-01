@@ -24,27 +24,27 @@ __device__ unsigned int hashFunction(int key, int tableSize) {
     return hash % tableSize;
 }
 
-__global__ void reshapeKernel(int *keys, int *values, int numItems, int capacity,
-                              int *newKeys, int *newValues, int newCapacity) {
+__global__ void reshapeKernel(int* keys, int* values, int numItems, int capacity,
+                              int* newKeys, int* newValues, int newCapacity) {
     // Calculate global index
     unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
 
     if (i < capacity) {
         // Calculate the hash
-        unsigned int newHash = hashFunction(newKeys[i], newCapacity);
+        unsigned int reshapeHash = hashFunction(keys[i], newCapacity);
 
         // Try and insert the key
-        while(true) {
+        while (true) {
             // If the key is -1, insert it
-            if (atomicCAS(&newKeys[newHash], -1, keys[i]) == -1) {
+            if (atomicCAS(&newKeys[reshapeHash], -1, keys[i]) == -1) {
                 // Insert the value
-                atomicCAS(&newValues[newHash], -1, values[i]);
+                atomicCAS(&newValues[reshapeHash], -1, values[i]);
 
                 // Break the loop
                 break;
             } else {
                 // If the key is not -1, try and insert it in the next position
-                newHash = (newHash + 1) % newCapacity;
+                reshapeHash = (reshapeHash + 1) % newCapacity;
             }
         }
     }
