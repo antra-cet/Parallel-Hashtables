@@ -117,7 +117,7 @@ __global__ void getKernel(int *keys, int *values, int numItems, int capacity,
 
 GpuHashTable::GpuHashTable(int size) {
     cudaError_t ret;
-    // printf("GpuHashTable::GpuHashTable\n");
+    printf("GpuHashTable::GpuHashTable\n");
 
     // Allocate memory for the hashtable
     ret = glbGpuAllocator->_cudaMalloc((void**)&this->keys, size * sizeof(int));
@@ -149,13 +149,13 @@ GpuHashTable::GpuHashTable(int size) {
         exit(1);
     }
 
-    // printf("Finished GpuHashTable::GpuHashTable\n");
+    printf("Finished GpuHashTable::GpuHashTable\n");
 }
 
 GpuHashTable::~GpuHashTable() {
     cudaError_t ret;
 
-    // printf("GpuHashTable::~GpuHashTable\n");
+    printf("GpuHashTable::~GpuHashTable\n");
 
     // Free the memory allocated for the hashtable
     ret = glbGpuAllocator->_cudaFree(this->keys);
@@ -174,12 +174,12 @@ GpuHashTable::~GpuHashTable() {
     this->numItems = 0;
     this->capacity = 0;
 
-    // printf("Finished GpuHashTable::~GpuHashTable\n");
+    printf("Finished GpuHashTable::~GpuHashTable\n");
 }
 
 void GpuHashTable::reshape(int numBucketsReshape) {
     cudaError_t ret;
-    // printf("GpuHashTable::reshape\n");
+    printf("GpuHashTable::reshape\n");
 
     // Allocate memory for the new hashtable
     int *newKeys, *newValues;
@@ -245,12 +245,12 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     this->values = newValues;
     this->capacity = numBucketsReshape;
 
-    // printf("Finished GpuHashTable::reshape\n");
+    printf("Finished GpuHashTable::reshape\n");
 }
 
 bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     cudaError_t ret;
-    // printf("GpuHashTable::insertBatch\n");
+    printf("GpuHashTable::insertBatch\n");
 
     // Other checks
     if (numKeys <= 0) {
@@ -311,16 +311,12 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 
     *numAddedItems = 0;
 
-    // printf("numAddedItems: %d\n", *numAddedItems);
-
     // Call the kernel
     insertKernel<<<blocks_no, block_size>>>(this->keys, this->values, numAddedItems, this->capacity,
                                             d_keys, d_values, numKeys);
 
-    // printf("numAddedItems: %d\n", *numAddedItems);
     // Add the keys - numAddedItems to the numItems
     this->numItems += *numAddedItems;
-    // printf("finished adding\n");
 
     // Synchronize the threads
     ret = cudaDeviceSynchronize();
@@ -348,14 +344,14 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
         exit(1);
     }
 
-    // printf("Finished GpuHashTable::insertBatch\n");
+    printf("Finished GpuHashTable::insertBatch\n");
 
     return true;
 }
 
 int* GpuHashTable::getBatch(int* keys, int numKeys) {
     cudaError_t ret;
-    // printf("GpuHashTable::getBatch\n");
+    printf("GpuHashTable::getBatch\n");
 
     // Allocate memory for the values
     int *values;
@@ -405,7 +401,7 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
         exit(1);
     }
 
-    // printf("Finished GpuHashTable::getBatch\n");
+    printf("Finished GpuHashTable::getBatch\n");
 
     return values;
 }
