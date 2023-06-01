@@ -210,9 +210,9 @@ void GpuHashTable::reshape(int numBucketsReshape) {
 
     // Calculate the number of blocks and threads
     const size_t block_size = 256;
-  	size_t blocks_no = numBucketsReshape / block_size;
+  	size_t blocks_no = this->capacity / block_size;
 
-    if (numBucketsReshape % block_size) {
+    if (this->capacity % block_size) {
         ++blocks_no;
     }
 
