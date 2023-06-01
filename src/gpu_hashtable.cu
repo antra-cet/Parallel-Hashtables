@@ -315,6 +315,8 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     insertKernel<<<blocks_no, block_size>>>(this->keys, this->values, numAddedItems, this->capacity,
                                             d_keys, d_values, numKeys);
 
+    printf("Finished Kernel\n");
+
     // Add the keys - numAddedItems to the numItems
     this->numItems += *numAddedItems;
 
