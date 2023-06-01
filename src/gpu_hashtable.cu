@@ -33,6 +33,10 @@ __global__ void reshapeKernel(int* keys, int* values, int numItems, int capacity
         // Calculate the hash
         unsigned int reshapeHash = hashFunction(keys[i], newCapacity);
 
+        if (newValues[i] == -1) {
+            return;
+        }
+
         // Try and insert the key
         while (true) {
             // If the key is -1, insert it
@@ -260,7 +264,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 
     // Verify if the hashtable needs to be resized
     float loadFactor = (this->numItems + numKeys) / float(this->capacity);
-    if (loadFactor > LOADFACTOR) {
+    if (loadFactor >= LOADFACTOR) {
         // Calculate the resize capacity
         int resizeCapacity = (this->numItems + numKeys) / DESIRED_LOADFACTOR;
 
