@@ -262,7 +262,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     }
 
     // Verify if the hashtable needs to be resized
-    float loadFactor = (this->numItems + numKeys) / float(this->capacity);
+    float loadFactor = 1.0 * (this->numItems + numKeys) / this->capacity;
     printf("Load factor: %f\n", loadFactor);
     if (loadFactor >= LOADFACTOR) {
         // Calculate the resize capacity
