@@ -223,7 +223,10 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 
     int *numAddedItems;
     glbGpuAllocator->_cudaMallocManaged((void**)&numAddedItems, sizeof(int));
+    printf("Inainte\n");
     *numAddedItems = 0;
+    printf("Dupa\n");
+
     printf("numAddedItems: %d\n", *numAddedItems);
 
     // Call the kernel
