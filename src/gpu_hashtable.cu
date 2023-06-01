@@ -82,6 +82,7 @@ __global__ void insertKernel(int *keys, int *values, int *numItems, int capacity
                     break;
                 } else {
                     // If the key is not -1, try and insert it in the next position
+                    printf("Seatching..\n");
                     insertHash = (insertHash + 1) % capacity;
                 }
             }
