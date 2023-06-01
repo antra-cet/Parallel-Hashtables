@@ -29,24 +29,21 @@ __global__ void reshapeKernel(int* keys, int* values, int numItems, int capacity
     // Calculate global index
     unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
 
-    if (i < capacity) {
-        // Calculate the hash
-        unsigned int reshapeHash = hashFunction(keys[i], newCapacity);
+    if (i < numItems) {
+        // Get the key-value pair to rehash
+        int key = keys[i];
+        int value = values[i];
 
-        // Try and insert the key
-        while (true) {
-            // If the key is -1, insert it
-            if (atomicCAS(&newKeys[reshapeHash], -1, keys[i]) == -1) {
-                // Insert the value
-                atomicCAS(&newValues[reshapeHash], -1, values[i]);
+        // Calculate the new hash
+        unsigned int newHash = hashFunction(key, newCapacity);
 
-                // Break the loop
-                break;
-            } else {
-                // If the key is not -1, try and insert it in the next position
-                reshapeHash = (reshapeHash + 1) % newCapacity;
-            }
+        // Try and insert the key-value pair
+        while (atomicCAS(&newKeys[newHash], -1, key) != -1) {
+            newHash = (newHash + 1) % newCapacity;
         }
+
+        // Insert the value at the corresponding position
+        atomicExch(&newValues[newHash], value);
     }
 }
 
