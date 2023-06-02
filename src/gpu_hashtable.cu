@@ -285,7 +285,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 
     if (loadFactor >= LOADFACTOR) {
         // Calculate the resize capacity
-        int resizeCapacity = (this->numItems + numKeys) / DESIRED_LOADFACTOR;
+        int resizeCapacity = 10 * (this->numItems + numKeys) / 6;
 
         // Reshape the hashtable
         this->reshape(resizeCapacity);
