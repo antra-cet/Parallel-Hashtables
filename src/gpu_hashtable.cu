@@ -268,7 +268,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 
     cudaError_t ret;
 
-    if (keys != NULL || values != NULL) {
+    if (keys == NULL || values == NULL) {
         return false;
     }
 
