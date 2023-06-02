@@ -53,7 +53,7 @@ __global__ void reshapeKernel(int* keys, int* values, int numItems, int capacity
 }
 
 /* Inserting the elements on the kernel */
-__global__ void insertKernel(int *keys, int *values, int *numItems, int capacity,
+__global__ void insertKernel(int *keys, int *values, int *numAddedItems, int capacity,
                              int *insertKeys, int *insertValues, int numInsertItems) {
     // Calculate global index
   	unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
@@ -71,7 +71,7 @@ __global__ void insertKernel(int *keys, int *values, int *numItems, int capacity
                 values[insertHash] = insertValues[i];
 
                 // Increment the number of items
-                atomicAdd(numItems, 1);
+                atomicAdd(*numAddedItems, 1);
 
                 // Break the loop
                 break;
@@ -327,6 +327,8 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
         printf("Error allocating memory for numAddedItems, error: %s\n", cudaGetErrorString(ret));
         exit(1);
     }
+
+    *numAddedItems = 0;
 
     // Call the kernel
     insertKernel<<<blocks_no, block_size>>>(this->keys, this->values, numAddedItems, this->capacity,
