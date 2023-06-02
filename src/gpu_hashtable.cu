@@ -71,7 +71,7 @@ __global__ void insertKernel(int *keys, int *values, int *numAddedItems, int cap
                 values[insertHash] = insertValues[i];
 
                 // Increment the number of items
-                atomicAdd(*numAddedItems, 1);
+                atomicAdd(numAddedItems, 1);
 
                 // Break the loop
                 break;
@@ -337,9 +337,6 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     // REMOVE
     printf("Finished Kernel\n");
 
-    // Add the keys - numAddedItems to the numItems
-    this->numItems += *numAddedItems;
-
     // REMOVE
     printf("Started Synchronizing\n");
 
@@ -351,6 +348,9 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 
     // REMOVE
     printf("Finished Synchronizing\n");
+
+    // Add the keys - numAddedItems to the numItems
+    this->numItems += *numAddedItems;
 
     // Free the memory allocated for the keys and values
     ret = glbGpuAllocator->_cudaFree(d_keys);
