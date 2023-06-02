@@ -328,8 +328,6 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
         exit(1);
     }
 
-    *numAddedItems = 0;
-
     // Call the kernel
     insertKernel<<<blocks_no, block_size>>>(this->keys, this->values, numAddedItems, this->capacity,
                                             d_keys, d_values, numKeys);
