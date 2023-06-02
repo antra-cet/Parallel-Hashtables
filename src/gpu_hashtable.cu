@@ -11,8 +11,8 @@
 
 using namespace std;
 
-#define LOADFACTOR 0.8
-#define DESIRED_LOADFACTOR 0.6
+#define LOADFACTOR 0.9
+#define DESIRED_LOADFACTOR 0.7
 
 /* The hash function */
 __device__ unsigned int hashFunction(int key, int tableSize) {
