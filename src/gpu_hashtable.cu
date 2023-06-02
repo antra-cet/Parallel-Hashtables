@@ -14,6 +14,7 @@ using namespace std;
 #define LOADFACTOR 0.75
 #define DESIRED_LOADFACTOR 0.55
 
+/* The hash function */
 __device__ unsigned int hashFunction(int key, int tableSize) {
     unsigned int hash = static_cast<unsigned int>(key);
 
@@ -24,6 +25,7 @@ __device__ unsigned int hashFunction(int key, int tableSize) {
     return hash % tableSize;
 }
 
+/* Inserting the keys and values into the new keys and values */
 __global__ void reshapeKernel(int* keys, int* values, int numItems, int capacity,
                               int* newKeys, int* newValues, int newCapacity) {
     // Calculate global index
@@ -36,7 +38,7 @@ __global__ void reshapeKernel(int* keys, int* values, int numItems, int capacity
         // Try and insert the key
         while (true) {
             // If the key is -1, insert it
-            if (atomicCAS(&newKeys[reshapeHash], -1, keys[i]) == -1) {
+            if (newKeys[reshapeHash] == -1) {
                 // Insert the value
                 newValues[reshapeHash] = values[i];
 
@@ -50,6 +52,7 @@ __global__ void reshapeKernel(int* keys, int* values, int numItems, int capacity
     }
 }
 
+/* Inserting the elements on the kernel */
 __global__ void insertKernel(int *keys, int *values, int *numItems, int capacity,
                              int *insertKeys, int *insertValues, int numInsertItems) {
     // Calculate global index
@@ -89,6 +92,7 @@ __global__ void insertKernel(int *keys, int *values, int *numItems, int capacity
     }
 }
 
+/* Kernel function to get the elements */
 __global__ void getKernel(int *keys, int *values, int numItems, int capacity,
                           int *getKeys, int *getValues, int numGetItems) {
     // Calculate global index
@@ -116,8 +120,10 @@ __global__ void getKernel(int *keys, int *values, int numItems, int capacity,
 }
 
 GpuHashTable::GpuHashTable(int size) {
-    cudaError_t ret;
+    // REMOVE
     printf("GpuHashTable::GpuHashTable\n");
+
+    cudaError_t ret;
 
     // Allocate memory for the hashtable
     ret = glbGpuAllocator->_cudaMalloc((void**)&this->keys, size * sizeof(int));
@@ -136,7 +142,7 @@ GpuHashTable::GpuHashTable(int size) {
     this->numItems = 0;
     this->capacity = size;
 
-    // Initialize the hashtable with -1
+    // Initialize the keys and values with -1
     ret = cudaMemset(this->keys, -1, size * sizeof(int));
     if (ret != cudaSuccess) {
         printf("Error initializing keys: %s\n", cudaGetErrorString(ret));
@@ -149,13 +155,15 @@ GpuHashTable::GpuHashTable(int size) {
         exit(1);
     }
 
+    // REMOVE
     printf("Finished GpuHashTable::GpuHashTable\n");
 }
 
 GpuHashTable::~GpuHashTable() {
-    cudaError_t ret;
-
+    // REMOVE
     printf("GpuHashTable::~GpuHashTable\n");
+
+    cudaError_t ret;
 
     // Free the memory allocated for the hashtable
     ret = glbGpuAllocator->_cudaFree(this->keys);
@@ -174,15 +182,17 @@ GpuHashTable::~GpuHashTable() {
     this->numItems = 0;
     this->capacity = 0;
 
+    // REMOVE
     printf("Finished GpuHashTable::~GpuHashTable\n");
 }
 
 void GpuHashTable::reshape(int numBucketsReshape) {
-    cudaError_t ret;
+    // REMOVE
     printf("GpuHashTable::reshape\n");
-
     float loadFactor = 1.0 * (this->numItems) / this->capacity;
     printf("Load factor: %f\n", loadFactor);
+
+    cudaError_t ret;
 
     // Allocate memory for the new hashtable
     int *newKeys, *newValues;
@@ -248,12 +258,15 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     this->values = newValues;
     this->capacity = numBucketsReshape;
 
+    // REMOVE
     printf("Finished GpuHashTable::reshape\n");
 }
 
 bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
-    cudaError_t ret;
+    // REMOVE
     printf("GpuHashTable::insertBatch\n");
+
+    cudaError_t ret;
 
     // Other checks
     if (numKeys <= 0) {
@@ -266,7 +279,10 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 
     // Verify if the hashtable needs to be resized
     float loadFactor = 1.0 * (this->numItems + numKeys) / this->capacity;
+
+    // REMOVE
     printf("Load factor: %f\n", loadFactor);
+
     if (loadFactor >= LOADFACTOR) {
         // Calculate the resize capacity
         int resizeCapacity = (this->numItems + numKeys) / DESIRED_LOADFACTOR;
@@ -323,12 +339,13 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
     insertKernel<<<blocks_no, block_size>>>(this->keys, this->values, numAddedItems, this->capacity,
                                             d_keys, d_values, numKeys);
 
+    // REMOVE
     printf("Finished Kernel\n");
 
     // Add the keys - numAddedItems to the numItems
     this->numItems += *numAddedItems;
 
-    // Synchronize the threads
+    // REMOVE
     printf("Started Synchronizing\n");
 
     ret = cudaDeviceSynchronize();
@@ -337,6 +354,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
         exit(1);
     }
 
+    // REMOVE
     printf("Finished Synchronizing\n");
 
     // Free the memory allocated for the keys and values
@@ -358,14 +376,17 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
         exit(1);
     }
 
+    // REMOVE
     printf("Finished GpuHashTable::insertBatch\n");
 
     return true;
 }
 
 int* GpuHashTable::getBatch(int* keys, int numKeys) {
-    cudaError_t ret;
+    // REMOVE
     printf("GpuHashTable::getBatch\n");
+
+    cudaError_t ret;
 
     // Allocate memory for the values
     int *values;
@@ -415,6 +436,7 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
         exit(1);
     }
 
+    // REMOVE
     printf("Finished GpuHashTable::getBatch\n");
 
     return values;
