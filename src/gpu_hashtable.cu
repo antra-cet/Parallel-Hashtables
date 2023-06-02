@@ -268,11 +268,6 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 
     cudaError_t ret;
 
-    // Other checks
-    if (numKeys <= 0) {
-        return false;
-    }
-
     if (keys != NULL || values != NULL) {
         return false;
     }
@@ -285,7 +280,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 
     if (loadFactor >= LOADFACTOR) {
         // Calculate the resize capacity
-        int resizeCapacity = 10 * (this->numItems + numKeys) / 6;
+        int resizeCapacity = (this->numItems + numKeys) / DESIRED_LOADFACTOR;
 
         // Reshape the hashtable
         this->reshape(resizeCapacity);
