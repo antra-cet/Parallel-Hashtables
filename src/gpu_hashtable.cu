@@ -38,7 +38,7 @@ __global__ void reshapeKernel(int* keys, int* values, int numItems, int capacity
         // Try and insert the key
         while (true) {
             // If the key is -1, insert it
-            if (newKeys[reshapeHash] == -1) {
+            if (atomicCAS(&newKeys[reshapeHash], -1, keys[i]) == -1) {
                 // Insert the value
                 newValues[reshapeHash] = values[i];
 
@@ -112,7 +112,7 @@ __global__ void getKernel(int *keys, int *values, int numItems, int capacity,
                 // Break the loop
                 break;
             } else {
-                // If the key is not -1, try and get it from the next position
+                // If not, try and get it from the next position
                 getHash = (getHash + 1) % capacity;
             }
         }
