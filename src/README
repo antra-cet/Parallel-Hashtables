@@ -1,0 +1,60 @@
+-- Tema3 Bivolaru Andra 333CA --
+
+GpuHashTable
+This file implements a GPU-based hash table data structure using CUDA.
+The GpuHashTable class provides functionality for inserting and retrieving key-value pairs in parallel on the GPU.
+
+
+Kernel Functions:
+
+-- reshapeKernel: This kernel function reshapes the hash table by inserting the keys and values into a new hash table.
+    It uses the hashFunction to calculate the hash and handles collisions by linear probing.
+
+-- insertKernel: This kernel function inserts new keys and values into the hash table.
+    It handles collisions and updates existing keys if necessary.
+
+-- getKernel: This kernel function retrieves values from the hash table based on the given keys.
+
+
+GpuHashTable Class
+The GpuHashTable class provides an interface for interacting with the GPU-based hash table. It has the following public methods:
+
+-- GpuHashTable(int size): Constructor that initializes the hash table with the given size.
+-- ~GpuHashTable(): Destructor that frees the memory allocated for the hash table.
+-- void reshape(int numBucketsReshape): Reshapes the hash table to the specified number of buckets.
+-- bool insertBatch(int* keys, int* values, int numKeys): Inserts a batch of key-value pairs into the hash table.
+-- int* getBatch(int* keys, int numKeys): Retrieves the values corresponding to the given keys from the hash table.
+-- The class uses CUDA functions and memory allocation methods to manage data on the GPU.
+
+Detailed explanation of the implementation:
+
+-- GpuHashTable(int size):
+    - The constructor first allocates memory for the hash table on the GPU.
+    - It then initializes the hash table with the given size and sets the number of buckets to the size.
+    - It also initializes the number of elements in the hash table to 0.
+    - Finally, it initializes the hash table with the default values.
+
+-- ~GpuHashTable():
+    - The destructor frees the memory allocated for the hash table on the GPU.
+    - It also frees the memory allocated for the hash table on the host.
+    - Finally, it sets the number of buckets and the number of elements in the hash table to 0.
+
+-- void reshape(int numBucketsReshape):
+    - The reshape method first allocates memory for the new hash table on the GPU.
+    - It initializes the new hash table with the default values.
+    - It then calls the reshapeKernel to insert the keys and values from the old hash table into the new hash table.
+    - Then, it synchronizes the GPU and frees the memory allocated for the old hash table.
+    - Finally, it sets the capacity, values and keys to the new values.
+
+-- bool insertBatch(int* keys, int* values, int numKeys):
+    - The insertBatch method first verifies if the loadFactor of the hash table is greater than 0.8.
+    - If so, it calls the reshape method.
+    - It then allocates memory for the keys and values on the GPU and copies the data from the host to the device.
+    - It then calls the insertKernel to insert the keys and values into the hash table.
+    - Finally, it synchronizes the GPU and frees the memory allocated for the keys and values on the device.
+
+-- int* getBatch(int* keys, int numKeys):
+    - The getBatch method allocates memory for the values on the GPU.
+    - It then copies the keys from the host to the device.
+    - It then calls the getKernel to retrieve the values from the hash table.
+    - Finally, it synchronizes the GPU and frees the memory allocated for the keys on the device.

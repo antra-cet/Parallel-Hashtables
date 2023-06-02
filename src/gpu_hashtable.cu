@@ -31,6 +31,7 @@ __global__ void reshapeKernel(int* keys, int* values, int numItems, int capacity
     // Calculate global index
     unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
 
+    // If not out of bounds or the key is -1
     if (i < capacity && keys[i] != -1) {
         // Calculate the hash
         unsigned int reshapeHash = hashFunction(keys[i], newCapacity);
@@ -70,7 +71,7 @@ __global__ void insertKernel(int *keys, int *values, int *numAddedItems, int cap
                 // Insert the value
                 values[insertHash] = insertValues[i];
 
-                // Increment the number of items
+                // Increment the number of added items
                 atomicAdd(numAddedItems, 1);
 
                 // Break the loop
@@ -98,6 +99,7 @@ __global__ void getKernel(int *keys, int *values, int numItems, int capacity,
     // Calculate global index
     unsigned int i = threadIdx.x + blockDim.x * blockIdx.x;
 
+    // If not out of bounds
     if (i < numGetItems) {
         // Calculate the hash
         unsigned int getHash = hashFunction(getKeys[i], capacity);
@@ -120,12 +122,10 @@ __global__ void getKernel(int *keys, int *values, int numItems, int capacity,
 }
 
 GpuHashTable::GpuHashTable(int size) {
-    // REMOVE
-    printf("GpuHashTable::GpuHashTable\n");
-
     cudaError_t ret;
 
-    // Allocate memory for the hashtable
+    // Allocate memory for the keys and values
+
     ret = glbGpuAllocator->_cudaMalloc((void**)&this->keys, size * sizeof(int));
     if (ret != cudaSuccess) {
         printf("Error allocating memory for keys: %s\n", cudaGetErrorString(ret));
@@ -154,18 +154,12 @@ GpuHashTable::GpuHashTable(int size) {
         printf("Error initializing values: %s\n", cudaGetErrorString(ret));
         exit(1);
     }
-
-    // REMOVE
-    printf("Finished GpuHashTable::GpuHashTable\n");
 }
 
 GpuHashTable::~GpuHashTable() {
-    // REMOVE
-    printf("GpuHashTable::~GpuHashTable\n");
-
     cudaError_t ret;
 
-    // Free the memory allocated for the hashtable
+    // Free the memory allocated for the keys and values
     ret = glbGpuAllocator->_cudaFree(this->keys);
     if (ret != cudaSuccess) {
         printf("Error freeing memory for keys: %s\n", cudaGetErrorString(ret));
@@ -181,17 +175,9 @@ GpuHashTable::~GpuHashTable() {
     // Set numItems and capacity to 0
     this->numItems = 0;
     this->capacity = 0;
-
-    // REMOVE
-    printf("Finished GpuHashTable::~GpuHashTable\n");
 }
 
 void GpuHashTable::reshape(int numBucketsReshape) {
-    // REMOVE
-    printf("GpuHashTable::reshape\n");
-    float loadFactor = 1.0 * (this->numItems) / this->capacity;
-    printf("Load factor: %f\n", loadFactor);
-
     cudaError_t ret;
 
     // Allocate memory for the new hashtable
@@ -208,7 +194,7 @@ void GpuHashTable::reshape(int numBucketsReshape) {
         exit(1);
     }
 
-    // Initialize the hashtable with -1
+    // Initialize the keys and values with -1
     ret = cudaMemset(newKeys, -1, numBucketsReshape * sizeof(int));
     if (ret != cudaSuccess) {
         printf("Error initializing new keys: %s\n", cudaGetErrorString(ret));
@@ -257,27 +243,18 @@ void GpuHashTable::reshape(int numBucketsReshape) {
     this->keys = newKeys;
     this->values = newValues;
     this->capacity = numBucketsReshape;
-
-    // REMOVE
-    printf("Finished GpuHashTable::reshape\n");
 }
 
 bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
-    // REMOVE
-    printf("GpuHashTable::insertBatch\n");
-
     cudaError_t ret;
 
+    // Verify if the keys or values are NULL
     if (keys == NULL || values == NULL) {
         return false;
     }
 
     // Verify if the hashtable needs to be resized
     float loadFactor = 1.0 * (this->numItems + numKeys) / this->capacity;
-
-    // REMOVE
-    printf("Load factor: %f\n", loadFactor);
-
     if (loadFactor >= LOADFACTOR) {
         // Calculate the resize capacity
         int resizeCapacity = (this->numItems + numKeys) / DESIRED_LOADFACTOR;
@@ -321,6 +298,7 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
 		++blocks_no;
     }
 
+    // Allocate memory for the number of newly added items
     int *numAddedItems;
     ret = glbGpuAllocator->_cudaMallocManaged((void**)&numAddedItems, sizeof(int));
     if (ret != cudaSuccess) {
@@ -328,28 +306,21 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
         exit(1);
     }
 
+    // Initialize the number of newly added items with 0
     *numAddedItems = 0;
 
     // Call the kernel
     insertKernel<<<blocks_no, block_size>>>(this->keys, this->values, numAddedItems, this->capacity,
                                             d_keys, d_values, numKeys);
 
-    // REMOVE
-    printf("Finished Kernel\n");
-
-    // REMOVE
-    printf("Started Synchronizing\n");
-
+    // Synchronize the threads
     ret = cudaDeviceSynchronize();
     if (ret != cudaSuccess) {
         printf("Error synchronizing threads: %s\n", cudaGetErrorString(ret));
         exit(1);
     }
 
-    // REMOVE
-    printf("Finished Synchronizing\n");
-
-    // Add the keys - numAddedItems to the numItems
+    // Add the new added keys to the numItems
     this->numItems += *numAddedItems;
 
     // Free the memory allocated for the keys and values
@@ -371,16 +342,10 @@ bool GpuHashTable::insertBatch(int* keys, int* values, int numKeys) {
         exit(1);
     }
 
-    // REMOVE
-    printf("Finished GpuHashTable::insertBatch\n");
-
     return true;
 }
 
 int* GpuHashTable::getBatch(int* keys, int numKeys) {
-    // REMOVE
-    printf("GpuHashTable::getBatch\n");
-
     cudaError_t ret;
 
     // Allocate memory for the values
@@ -391,7 +356,7 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
         exit(1);
     }
 
-    // Copy the keys to the device
+    // Allocate memory for the keys and copy them to the device
     int *d_keys;
     ret = glbGpuAllocator->_cudaMalloc((void**)&d_keys, numKeys * sizeof(int));
     if (ret != cudaSuccess) {
@@ -430,9 +395,6 @@ int* GpuHashTable::getBatch(int* keys, int numKeys) {
         printf("Error freeing memory for keys: %s\n", cudaGetErrorString(ret));
         exit(1);
     }
-
-    // REMOVE
-    printf("Finished GpuHashTable::getBatch\n");
 
     return values;
 }
